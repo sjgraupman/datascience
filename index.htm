@@ -7,11 +7,12 @@
 <h1> testing</h1>
 <script>
 
-var body = d3.select("body");
+//var body = d3.select("body");
 
-var data = d3.csvParse("CountryData.csv");
-
-
+var data = d3.csvParse("CountryData.csv",
+function(data) {
+    console.log(data[3].Country);
+});
 
 </script>
 
