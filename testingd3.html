@@ -4,15 +4,11 @@
     </head>
 <body>
     <script>
-d3.request("/data/employee.csv")
-.mimeType("text/csv")
-.response(function (xhr) { return d3.csvParse(xhr.responseText); })
-.get(function(data) {
-    console.log(data);
-});
-
-
-</script>
-<h1> This is a test </h1>
+        var nameObj = {
+            "name":"John",
+            "age": 30,
+            "city": "New York"
+        };
+        </script>
 </body>
 </html>
