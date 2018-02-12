@@ -1,0 +1,81 @@
+<html>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+    <style>
+     body {
+      font-family: 'Alegreya Sans', Calibri, sans-serif;
+    }
+    svg {
+      border: solid rgb(48, 29, 66) 1px;
+      display: block;
+      margin: auto;
+    }
+    </style>
+<head>
+
+</head>
+<body>
+    
+    <svg height = "500"; width = "600"; ></svg>
+
+    <script id = "code">
+        var svg = d3.select("svg");
+        var g = svg.append("g");
+
+        var height = svg.attr("height");
+        var width = svg.attr("width");
+
+        var parseTime = d3.timeParse("%d-%b-%y");
+        var padding = 25;
+
+        var data = d3.csv("/data/simpsons_episodes.csv", function(data) {
+            rawData = data;
+            
+            //cast into correct types
+            rawData.forEach(function (d) { d.original_air_date = new Date(d.original_air_date);
+                d.us_viewers_in_millions = +d.us_viewers_in_millions; });
+
+            rawData = rawData.sort(function(a,b) { return d3.ascending(a.original_air_date, b.original_air_date); });
+
+            viewersExtent = d3.extent(rawData, function(d) {return d.us_viewers_in_millions});
+            var viewersScale = d3.scaleLinear()
+                .range([height-padding, padding])
+                .domain(viewersExtent);
+
+            var timeExtent = d3.extent(rawData, function(d){ return d.original_air_date});
+            var dateScale = d3.scaleTime().range([padding, width- padding]).domain(timeExtent);
+                
+
+            line = d3.line()
+                .x(function(d){return dateScale(d.original_air_date)})
+                .y(function(d){return viewersScale(d.us_viewers_in_millions)});
+
+            var xAxis = d3.axisBottom(dateScale).tickSize(3);
+            var yAxis = d3.axisLeft(viewersScale).tickSize(3);
+             
+            svg.append("path")
+                .data([rawData])
+                .attr("d", line)
+                .attr("stroke", "blue")
+                .attr("stroke-width", 1)
+                .attr("fill", "none");
+
+            var xaxisAdjustment = height - 20;
+            svg.append('g')
+            .attr('transform', 'translate(0,' + xaxisAdjustment + ')')
+            .call(xAxis);
+
+            var yaxisAdjustment = padding - 5;
+            svg.append('g')
+            .attr('transform', 'translate('+ yaxisAdjustment +',0 )')
+            .call(yAxis);
+
+          });
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,121 @@
+<html>
+
+<head>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Alegreya Sans', Calibri, sans-serif;
+    }
+
+    svg {
+      border: solid #ccc 1px;
+      display: block;
+      margin: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <svg height="600" width="900"> </svg>
+
+  <script id="code">
+    var svg = d3.select("svg");
+
+    var width = svg.attr("width");
+    var height = svg.attr("height");
+
+    // Define variables outside the scope of the callback function.
+    var countryData;
+    var rawData, nestedData;
+    // This function will be applied to all rows. Select three columns, change names, and convert strings to numbers.
+    function parseLine(line) {
+      return {
+        Country: line["Country Name"],
+        Variable: line["Series Name"],
+        value: Number(line["2010 [YR2010]"])
+      };
+    }
+
+    d3.csv("CountryProfile.csv", parseLine, function (error, data) {
+      rawData = data;
+
+      nestedData = d3.nest()
+        .key(function (d) { return d.Country; })
+        .entries(data);
+
+      countryData = nestedData.map(function (country) {
+        var result = { Country: country.key };
+        country.values.forEach(function (d) {
+          if (d.Variable == "GDP (current US$)") { result.GDP = d.value; }
+          else if (d.Variable == "Population, total") { result.Population = d.value; }
+          else if (d.Variable == "Military expenditure (% of GDP)") {result.Military = d.value;}
+          // else if (d.Variable == "Energy use (kg of oil equivalent per capita)") { result.EnergyPerCapita = d.value; }
+        });
+
+
+
+        return result;
+      });
+
+      countryData = countryData.filter(function (d) { return d.Population && d.GDP });
+      countryData.shift();
+      console.log(countryData);
+
+      var popExtent = d3.extent(countryData, function (d) { return d.Population; });
+      var popScale = d3.scaleLog()
+        .domain(popExtent)
+        .range([0, width]);
+
+      var gdpExtent = d3.extent(countryData, function (d) { return d.GDP; });
+      var gdpScale = d3.scaleLog()
+        .domain(gdpExtent)
+        .range([height, 0]);
+      /*
+            var energyPerCapitaExtent = d3.extent(countryData, function (d) { return d.EnergyPerCapita; });
+            var energyPerCapitaScale = d3.scaleLog()
+              .domain(energyPerCapitaExtent)
+              .range([0, height]);
+      */
+      var militaryScale = d3.scaleLinear().domain([0,10,100]).range(["#000000", "#ff0000", "#0000ff"]);
+
+      countryData.forEach(function (country) {
+        svg.append("circle")
+          .attr("cx", popScale(country.Population))
+          .attr("cy", gdpScale(country.GDP))
+          .attr("r", 3)
+          .style("opacity", 0.3)
+          .style("fill", militaryScale(country.Military))
+          .on("mouseover", function () {
+            svg.select("#CountryName").text(country.Country);
+          });
+      });
+
+      var bottomAxes = d3.axisBottom(popScale).tickArguments([10, ".1f"]);
+      svg.append('g').attr('transform', "translate(0," + (height - 50) +")").call(bottomAxes).style("font", "8px times");
+
+      var leftAxes = d3.axisLeft(gdpScale).tickArguments([10, ",.0f"]);
+      svg.append('g').attr("transform", "translate(40, 0)").call(leftAxes).style("font", "6px times");
+
+
+
+    });
+
+
+
+  </script>
+
+
+  <pre><code id="display"></code></pre>
+
+
+  <script>
+    document.getElementById("display").innerText = document.getElementById("code").innerText;
+    hljs.initHighlightingOnLoad();
+  </script>
+
+</body>
+
+</html>
