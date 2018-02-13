@@ -35,7 +35,7 @@
       return {
         Country: line["Country Name"],
         Variable: line["Series Name"],
-        value: Number(line["2010 [YR2010]"])
+        value: Number(line["2016 [YR2016]"])
       };
     }
 
@@ -79,17 +79,16 @@
               .domain(energyPerCapitaExtent)
               .range([0, height]);
       */
-      var militaryScale = d3.scaleLinear().domain([0,10,100]).range(["#000000", "#ff0000", "#0000ff"]);
+      var militaryScale = d3.scaleLinear().domain([0,10,100]).range([1,10]);
 
       countryData.forEach(function (country) {
         svg.append("circle")
           .attr("cx", popScale(country.Population))
           .attr("cy", gdpScale(country.GDP))
-          .attr("r", 3)
+          .attr("r",  militaryScale(country.Military))
           .style("opacity", 0.3)
-          .style("fill", militaryScale(country.Military))
           .on("mouseover", function () {
-            svg.select("#CountryName").text(country.Country);
+            svg.select("#CountryName").text('test');
           });
       });
 
