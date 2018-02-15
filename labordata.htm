@@ -32,10 +32,9 @@
 
         var svg = d3.select("svg");
 
-
-        var dateScale = d3.scaleTime().domain([new Date("1990-01-01"), new Date("2016-12-01")]).range([0, 350]);
+var dateScale = d3.scaleTime().domain([new Date("2015-01-01"), new Date("2016-12-01")]).range([0, 350]);
 var dateAxis = d3.axisBottom(dateScale);
-var employmentScale = d3.scaleLinear().domain([0,3100]).range([350, 0]);
+var employmentScale = d3.scaleLinear().domain([2000,3100]).range([350, 0]);
 var employmentAxis = d3.axisLeft(employmentScale);
 
 var plot = svg.append("g").attr("transform", "translate(40,30)");
@@ -56,23 +55,33 @@ function parseLine (line) {
     line.month = line.period.replace("M", "");
     line.date = new Date(line.year, line.month);
     line.Employment = line.value;
+    line.series_id = line.series_id;
 	return line;
 }
 
 d3.tsv("data/sm.data.52.Wisconsin.txt", parseLine, function (error, data) {
 	rawData = data;
-
-    rawData = rawData.sort(function(a,b) { return d3.ascending(a.date, b.date); });
+    rawData = rawData.filter(function(d) { return d.series_id == 'SMU55000000000000001          ';})
+        .filter(function(d) { return d.year >= 2015;})
+        .sort(function(a,b) { return d3.ascending(a.date, b.date); });
 
 
     var line = d3.line()
     .x(function(d) { return dateScale(d.date); })
     .y(function(d) { return employmentScale(d.Employment); });
 
-
-    var lineGraph = svg.append("path").attr("d", line(rawData));
-
+    var lineGraph = svg.append("path")
+        .datum(rawData)
+        .attr("class", "line") // Assign a class for styling 
+        .attr("d", line)
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 2)
+        .attr("transform", "translate(40,30)");
 });
+
+    //var paths = plot.selectAll("path.lineGraph").data(data);
+
 
         </script>
 
